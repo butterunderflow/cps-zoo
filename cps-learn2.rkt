@@ -1,7 +1,10 @@
 #lang racket
 
 (define (get x env)
-  (cdr (assoc x env)))
+  (let ((value (assoc x env)))
+    (if value
+        (cdr value)
+        (error (string-append "variable " (symbol->string x) " not found")))))
 
 (define (operator? op)
   (member op '(+ - * / =)))
@@ -25,7 +28,11 @@
        (eval-f head env new-cont))]))
 
 (define (eval2 ex env cont)
-  ;; cps interpreter
+  ;; cps interpreter with call/cc operator
+  ;; call/cc stands for call with current continuation,
+  ;; when call a function with current continuation, interpreter will pass the continuation
+  ;; as argument to the function, and when call this continuation inside the function, 
+  ;; the control will enter this continuation and never come back again. 
   (match ex
     [b #:when (boolean? b) (cont b)]
     [n #:when (number? n) (cont n)]
@@ -49,6 +56,14 @@
      (eval2 ex0 env new-cont))]
     [`(begin ,@exs1)
      (eval-list eval2 exs1 env cont)]
+    [`(call/cc ,ex)
+     (let ((new-cont (lambda (f)
+                       (f
+                        (lambda (v _k)
+                          ;; _k is ignored, when call this continuation, the control will never come back to caller
+                          (cont v))
+                        init-cont))))
+       (eval2 ex env new-cont))]
     [`(,op ,arg)
      (let ((new-cont0
             (lambda (v0)

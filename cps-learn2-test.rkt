@@ -11,6 +11,10 @@
 
 (check-expect (eval-top '(if (= 1 2) 7 3)) 3)
 
+(check-expect
+ (eval-top '(+ (call/cc (lambda return (+ 9999 (return (* 3 3))))) (* 4 4)))
+ 25)
+
 (check-expect (with-output-to-string
                 (lambda ()
                   (eval-top '((lambda x (show x)) 10))))
