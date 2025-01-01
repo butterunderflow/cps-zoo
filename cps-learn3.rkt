@@ -78,6 +78,28 @@
                          ;;           |
                          (f contv init-cont mcont)))))
        (eval3 ex env new-cont mcont))]
+    [`(shift, ex)
+     ;; shift implementation use direct style
+     (let ((new-cont (lambda (f mk)
+                       (let ((contv (lambda (v k mk1)
+                                      (let ((res (cont v init-mcont)))
+                                        (k res mk1)))))
+                         (f contv init-cont mk)))))
+       (eval3 ex env new-cont mcont))]
+    [`(prompt ,ex)
+     ;; exactly same as reset
+     (eval3 ex env init-cont (lambda (v) (cont v mcont)))]
+    [`(control ,ex)
+     ;; a wrong implementation of control with same semantic as shift
+     (let ((new-cont (lambda (f mk)
+                       (let ((contv (lambda (v k mk1)
+                                      ;; try to append k after cont to make a `new-cont1`, but it's wrong!
+                                      (let ([new-cont1
+                                             (lambda (v mk2)
+                                               (cont v (lambda (v) (k v mk2))))])
+                                        (new-cont1 v mk1)))))
+                         (f contv init-cont mk)))))
+       (eval3 ex env new-cont mcont))]
     [`(,op ,arg)
      (let ((new-cont0
             (lambda (v0 mk0)
