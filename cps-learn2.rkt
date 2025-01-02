@@ -1,7 +1,7 @@
 #lang racket
 
 (define (get x env)
-  (let ((value (assoc x env)))
+  (let ([value (assoc x env)])
     (if value
         (cdr value)
         (error (string-append "variable " (symbol->string x) " not found")))))
@@ -22,9 +22,9 @@
     ['() (cont void)]
     [`(,ex) (eval-f ex env cont)]
     [`(,head ,@res)
-     (let ((new-cont
+     (let ([new-cont
             (lambda (v)
-              (eval-list eval-f res env cont))))
+              (eval-list eval-f res env cont))])
        (eval-f head env new-cont))]))
 
 (define (eval2 ex env cont)
@@ -41,36 +41,34 @@
      (cont (lambda (x k)
              (eval2 body (cons (cons sym x) env) k)))]
     [`(,op ,arg0 ,arg1) #:when (operator? op)
-                        (let ((new-cont0
+                        (let ([new-cont0
                                (lambda (v0)
-                                 (let ((new-cont1
+                                 (let ([new-cont1
                                         (lambda (v1)
-                                          (cont (eval-op op v0 v1)))))
-                                   (eval2 arg1 env new-cont1)))))
+                                          (cont (eval-op op v0 v1)))])
+                                   (eval2 arg1 env new-cont1)))])
                           (eval2 arg0 env new-cont0))]
     [`(if ,ex0 ,ex1 ,ex2)
-     (let ((new-cont (lambda (v)
+     (let ([new-cont (lambda (v)
                        (if v
                            (eval2 ex1 env cont)
-                           (eval2 ex2 env cont)))))
+                           (eval2 ex2 env cont)))])
      (eval2 ex0 env new-cont))]
     [`(begin ,@exs1)
      (eval-list eval2 exs1 env cont)]
     [`(call/cc ,ex)
-     (let ((new-cont (lambda (f)
-                       (f
-                        (lambda (v _k)
-                          ;; _k is ignored, when call this continuation, the control will never come back to caller
-                          (cont v))
-                        cont))))
+     (let ([new-cont (lambda (f)
+                       (let ([contv (lambda (v _k)
+                                      ;; _k is ignored, when call this continuation,
+                                      ;; the control will never come back to caller of call/cc
+                                      (cont v))])
+                         (f contv cont)))])
        (eval2 ex env new-cont))]
     [`(,op ,arg)
-     (let ((new-cont0
+     (let ([new-cont0
             (lambda (v0)
-              (let ((new-cont1
-                     (lambda (v1)
-                       (v0 v1 cont))))
-                (eval2 arg env new-cont1)))))
+              (let ([new-cont1 (lambda (v1) (v0 v1 cont))])
+                (eval2 arg env new-cont1)))])
        (eval2 op env new-cont0))]))
 
 (define default-env

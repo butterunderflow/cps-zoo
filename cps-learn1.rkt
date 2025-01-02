@@ -19,9 +19,9 @@
     ['() (cont void)]
     [`(,ex) (eval-f ex env cont)]
     [`(,head ,@res)
-     (let ((new-cont
+     (let ([new-cont
             (lambda (v)
-              (eval-list eval-f res env cont))))
+              (eval-list eval-f res env cont))])
        (eval-f head env new-cont))]))
 
 (define (eval1 ex env cont)
@@ -34,28 +34,28 @@
      (cont (lambda (x k)
              (eval1 body (cons (cons sym x) env) k)))]
     [`(,op ,arg0 ,arg1) #:when (operator? op)
-                        (let ((new-cont0
+                        (let ([new-cont0
                                (lambda (v0)
-                                 (let ((new-cont1
+                                 (let ([new-cont1
                                         (lambda (v1)
-                                          (cont (eval-op op v0 v1)))))
-                                   (eval1 arg1 env new-cont1)))))
+                                          (cont (eval-op op v0 v1)))])
+                                   (eval1 arg1 env new-cont1)))])
                           (eval1 arg0 env new-cont0))]
     [`(if ,ex0 ,ex1 ,ex2)
-     (let ((new-cont (lambda (v)
+     (let ([new-cont (lambda (v)
                        (if v
                            (eval1 ex1 env cont)
-                           (eval1 ex2 env cont)))))
+                           (eval1 ex2 env cont)))])
      (eval1 ex0 env new-cont))]
     [`(begin ,@exs1)
      (eval-list eval1 exs1 env cont)]
     [`(,op ,arg)
-     (let ((new-cont0
+     (let ([new-cont0
             (lambda (v0)
-              (let ((new-cont1
+              (let ([new-cont1
                      (lambda (v1)
-                       (v0 v1 cont))))
-                (eval1 arg env new-cont1)))))
+                       (v0 v1 cont))])
+                (eval1 arg env new-cont1)))])
        (eval1 op env new-cont0))]))
 
 (define default-env
