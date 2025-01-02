@@ -20,6 +20,10 @@
                        (shift (lambda kk 1)))))
  11)
 
+(check-expect
+ (eval-top '(+ (shift (lambda (k) 1)) 1))
+ 1 #| in racket is (+ (shift k 1) 1) |#)
+
 (check-expect (with-output-to-string
                 (lambda ()
                   (eval-top '((lambda x (show x)) 10))))
