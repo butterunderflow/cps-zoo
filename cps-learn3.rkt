@@ -76,7 +76,7 @@
                          ;;           |
                          ;;    shifted continuation
                          ;;           |
-                         (f contv init-cont mcont)))))
+                         (f contv init-cont mk)))))
        (eval3 ex env new-cont mcont))]
     [`(shift, ex)
      ;; shift implementation use direct style
