@@ -62,7 +62,7 @@
                         (lambda (v _k)
                           ;; _k is ignored, when call this continuation, the control will never come back to caller
                           (cont v))
-                        init-cont))))
+                        cont))))
        (eval2 ex env new-cont))]
     [`(,op ,arg)
      (let ((new-cont0
