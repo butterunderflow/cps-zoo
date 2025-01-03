@@ -24,6 +24,10 @@
  (eval-top '(+ (shift (lambda (k) 1)) 1))
  1 #| in racket is (+ (shift k 1) 1) |#)
 
+(check-expect
+ (eval-top '(+ 1 (reset (+ 10 (shift (lambda k (k (k 100))))))))
+ 121)
+
 (check-expect (with-output-to-string
                 (lambda ()
                   (eval-top '((lambda x (show x)) 10))))
