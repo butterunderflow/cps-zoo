@@ -25,6 +25,8 @@
        (eval-f head env new-cont))]))
 
 ;; TODO: can we partial evaluate this function to make a cps transformation?
+;; I think we can, residual program can inherit some property from subject program,
+;; but why cps-form will be inherited?
 (define (eval1 ex env cont)
   ;; cps interpreter
   (match ex
