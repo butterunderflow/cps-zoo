@@ -38,34 +38,35 @@
     [`(call/cc ,ex)
      `(lambda __k
         (,(cps-trans ex)
-         (lambda f
-           ((f (lambda v (lambda _k1
-                           ;; _k1 contains the computation from the continuation parameter's call site
-                           ;; to call/cc's call site, when the continuation parameter is invoked,
-                           ;; _k1 should be ignored. 
-                           (__k v)))) __k))))]
+         (lambda __f
+           ((__f (lambda __v (lambda __k1
+                               ;; __k1 contains the computation from the continuation parameter's call site
+                               ;; to call/cc's call site, when the continuation parameter is invoked,
+                               ;; __k1 should be ignored. 
+                               (__k __v)))) __k))))]
     [`(reset ,ex)
-     `(lambda k (k (,(cps-trans ex) (lambda v v))))]
+     ;; continuation-composing style
+     `(lambda __k (__k (,(cps-trans ex) (lambda __v __v))))]
     [`(shift ,ex)
-     `(lambda k
+     `(lambda __k
         (,(cps-trans ex)
-         (lambda f
+         (lambda __f
            (;; continuation-composing style:
             ;; when this functional argument is applied,
             ;; we compose k1 and k while incur a nested call (`(k1 (k v))`)
-            (f (lambda v (lambda k1 (k1 (k v)))))
+            (__f (lambda __v (lambda __k1 (__k1 (__k __v)))))
             ;; continuation at `shift` site is shifted, so we pass an `identity` function here
-            (lambda v v)))))]
+            (lambda __v __v)))))]
 
     [`(begin ,@exs)
      (cps-trans-list exs)]
     [`(,op ,arg0 ,arg1) #:when (operator? op)
                         `(lambda __k
                            (,(cps-trans arg0)
-                            (lambda v0
+                            (lambda __v0
                               (,(cps-trans arg1)
-                               (lambda v1
-                                 (__k (,op v0 v1)))))))]
+                               (lambda __v1
+                                 (__k (,op __v0 __v1)))))))]
     ;; TODO: make operator application consistent with learn0.rkt
     [`(,op ,ex) #:when (operator? op)
                 `(lambda __k
