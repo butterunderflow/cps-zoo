@@ -64,6 +64,19 @@
                                       (cont v))])
                          (f contv cont)))])
        (eval2 ex env new-cont))]
+    [`(reset ,ex)
+     (cont (eval2 ex env init-cont))]
+    [`(shift ,ex)
+     (let ([new-cont (lambda (f)
+                       (let ([contv (lambda (v k1)
+                                      ;; with continuation composing style, after calling the shifted
+                                      ;; continuation parameter, we can back to the call site
+                                      (k1 (cont v)))])
+                         ;; continuation `cont` is shifted here
+                         ;;           |
+                         ;;           v
+                         (f contv init-cont)))])
+       (eval2 ex env new-cont))]
     [`(,op ,arg)
      (let ([new-cont0
             (lambda (v0)
