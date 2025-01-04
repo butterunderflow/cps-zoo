@@ -34,12 +34,12 @@
                         (let ((arg0 (eval0 arg0 env))
                               (arg1 (eval0 arg1 env)))
                           (eval-op op arg0 arg1))]
-    [`(if ,cond ,ex0 ,ex1)
-     (if (eval0 cond env)
+    [`(if ,cd ,ex0 ,ex1)
+     (if (eval0 cd env)
          (eval0 ex0 env)
          (eval0 ex1 env))]
-    [`(begin ,@exs1)
-     (eval-list eval0 exs1 env)]
+    [`(begin ,@exs)
+     (eval-list eval0 exs env)]
     [`(,op ,arg)
      (let ((op (eval0 op env))
            (arg (eval0 arg env)))
