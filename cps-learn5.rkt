@@ -23,6 +23,10 @@
 ;; Did some reduction at the conversion time, e.g. make cps-trans return a
 ;; functional object, which accept a `k` that can fill any expression
 ;; into some context.
+;; Q: will there some duplicate computations exist?
+;; A: I think it's not possible if we can gurantee these condition:
+;;    1. the k is always used and only used once (if-else is the only exception, but it should be safe)
+;;    2. the parameter of first stage continuation is always used and only used once
 (define (cps-trans ex)
   (match ex
     [b #:when (boolean? b) (lambda (k) (k b))]
@@ -42,7 +46,8 @@
      (lambda (k)
        ((cps-trans ex)
         (lambda (f) #| a expression evaluates to a function |#
-          ;; todo: __v is still possible to collide with others?
+          ;; Q: __v is still possible to collide with others?
+          ;; A: No, because we have never capture any parameter with a new `__v`
           `((,f (lambda __v (lambda __k1
                               ,(k '__v)))) (lambda __v ,(k '__v))))))]
     [`(reset ,ex)
