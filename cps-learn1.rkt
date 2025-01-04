@@ -24,6 +24,7 @@
               (eval-list eval-f res env cont))])
        (eval-f head env new-cont))]))
 
+;; TODO: can we partial evaluate this function to make a cps transformation?
 (define (eval1 ex env cont)
   ;; cps interpreter
   (match ex
