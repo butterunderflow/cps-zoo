@@ -18,9 +18,6 @@
 ;; every converted expression accepts a continuation as its parameter,
 ;; and this continuation parameter will fill the evaluated value into
 ;; the correct context (at the runtime). 
-;; TODO: Do some reduction at the conversion time, e.g. make cps-trans return a
-;;       functional object, which accept a `k` that can fill any expression
-;;       into some context.
 (define (cps-trans ex)
   (match ex
     [b #:when (boolean? b) `(lambda __k (__k ,b))]
