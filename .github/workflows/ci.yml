@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v3
+
+    - uses: Bogdanp/setup-racket@v1.11
+      with:
+        version: '8.14'
+
+    - name: Run tests
+      run: |
+        make test
