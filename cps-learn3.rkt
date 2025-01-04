@@ -53,7 +53,18 @@
        (eval3 ex0 env new-cont mcont))]
     [`(begin ,@exs1)
      (eval-list eval3 exs1 env cont mcont)]
-    ;; we reset parameter `cont` twice, is this right?
+    [`(call/cc ,ex)
+     (let ([new-cont (lambda (f mk)
+                       (let ([contv (lambda (v _k mk1) (cont v mk1))])
+                         ;; current continuation is ignored in call/cc
+                         ;; not like shift, call/cc doesn't push current 
+                         ;; continuation into meta-continuation,
+                         ;; and it doesn't refresh the current continuation
+                         ;; to init-cont, so if the contv is not been called,
+                         ;; the control will still fall back to call/cc's
+                         ;; call-site 
+                         (f contv cont mk)))])
+       (eval3 ex env new-cont mcont))]
     [`(reset ,ex)
      (eval3 ex env init-cont (lambda (v) (cont v mcont)))]
     [`(shift ,ex)
