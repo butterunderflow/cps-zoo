@@ -31,7 +31,6 @@
                            (if v
                                (,(cps-trans ex0) __k)
                                (,(cps-trans ex1) __k)))))]
-    ;; TODO: shift/reset
     [`(call/cc ,ex)
      `(lambda __k
         (,(cps-trans ex)
