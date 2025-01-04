@@ -41,6 +41,19 @@
                            ;; to call/cc's call site, when the continuation parameter is invoked,
                            ;; _k1 should be ignored. 
                            (__k v)))) __k))))]
+    [`(reset ,ex)
+     `(lambda k (k (,(cps-trans ex) (lambda v v))))]
+    [`(shift ,ex)
+     `(lambda k
+        (,(cps-trans ex)
+         (lambda f
+           (;; continuation-composing style:
+            ;; when this functional argument is applied,
+            ;; we compose k1 and k while incur a nested call (`(k1 (k v))`)
+            (f (lambda v (lambda k1 (k1 (k v)))))
+            ;; continuation at `shift` site is shifted, so we pass an `identity` function here
+            (lambda v v)))))]
+
     [`(begin ,@exs)
      (cps-trans-list exs)]
     [`(,op ,arg0 ,arg1) #:when (operator? op)

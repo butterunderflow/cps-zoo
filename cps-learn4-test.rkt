@@ -18,6 +18,23 @@
 (check-expect (eval-after-trans '(if (= 1 2) 7 3)) 3)
 
 (check-expect
+ (eval-after-trans '(+ (shift (lambda return (+ 1 (return (* 3 3))))) (* 4 4)))
+ 26)
+
+(check-expect
+ (eval-after-trans '(reset  (+ (shift (lambda k (+ 10 (k 100))))
+                       (shift (lambda kk 1)))))
+ 11)
+
+(check-expect
+ (eval-after-trans '(+ (shift (lambda (k) 1)) 1))
+ 1 #| in racket is (+ (shift k 1) 1) |#)
+
+(check-expect
+ (eval-after-trans '(+ 1 (reset (+ 10 (shift (lambda k (k (k 100))))))))
+ 121)
+
+(check-expect
  (eval-after-trans '(+ (call/cc (lambda return (+ 9999 (return (* 3 3))))) (* 4 4)))
  25)
 
