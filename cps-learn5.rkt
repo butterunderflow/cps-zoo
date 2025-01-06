@@ -42,9 +42,9 @@
                          `(if ,ex
                               ,((cps-trans ex0) k)
                               ,((cps-trans ex1) k)))))]
-    [`(call/cc ,ex)
+    [`(call/cc ,k0 ,ex)
      (lambda (k)
-       ((cps-trans ex)
+       ((cps-trans `(lambda ,k0 ,ex))
         (lambda (f) #| a expression evaluates to a function |#
           ;; Q: __v is still possible to collide with others?
           ;; A: No, because we have never capture any parameter with a new `__v`
@@ -52,9 +52,9 @@
                               ,(k '__v)))) (lambda __v ,(k '__v))))))]
     [`(reset ,ex)
      (lambda (k) (k ((cps-trans ex) (lambda (v) v))))]
-    [`(shift ,ex)
+    [`(shift ,k0 ,ex)
      (lambda (k)
-       ((cps-trans ex)
+       ((cps-trans `(lambda ,k0 ,ex))
         (lambda (ex_f)
           `(;; continuation-composing style:
             ;; when this functional argument is applied,

@@ -56,27 +56,22 @@
      (eval2 ex0 env new-cont))]
     [`(begin ,@exs1)
      (eval-list eval2 exs1 env cont)]
-    [`(call/cc ,ex)
-     (let ([new-cont (lambda (f)
-                       (let ([contv (lambda (v _k)
-                                      ;; _k is ignored, when call this continuation,
-                                      ;; the control will never come back to caller of call/cc
-                                      (cont v))])
-                         (f contv cont)))])
-       (eval2 ex env new-cont))]
+    [`(call/cc ,k0 ,ex)
+     (let* ([contv (lambda (v _k)
+                    ;; _k is ignored, when call this continuation,
+                    ;; the control will never come back to caller of call/cc
+                    (cont v))]
+           [new-env (cons (cons k0 contv) env)])
+       (eval2 ex new-env cont))]
     [`(reset ,ex)
      (cont (eval2 ex env init-cont))]
-    [`(shift ,ex)
-     (let ([new-cont (lambda (f)
-                       (let ([contv (lambda (v k1)
-                                      ;; with continuation composing style, after calling the shifted
-                                      ;; continuation parameter, we can back to the call site
-                                      (k1 (cont v)))])
-                         ;; continuation `cont` is shifted here
-                         ;;           |
-                         ;;           v
-                         (f contv init-cont)))])
-       (eval2 ex env new-cont))]
+    [`(shift ,k0 ,ex)
+     (let* ([contv (lambda (v k1)
+                     ;; with continuation composing style, after calling the shifted
+                     ;; continuation parameter, we can back to the call site
+                     (k1 (cont v)))]
+            [new-env (cons (cons k0 contv) env)])
+       (eval2 ex new-env init-cont))]
     [`(,op ,arg)
      (let ([new-cont0
             (lambda (v0)

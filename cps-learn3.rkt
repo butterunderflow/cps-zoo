@@ -53,47 +53,39 @@
        (eval3 ex0 env new-cont mcont))]
     [`(begin ,@exs1)
      (eval-list eval3 exs1 env cont mcont)]
-    [`(call/cc ,ex)
-     (let ([new-cont (lambda (f mk)
-                       (let ([contv (lambda (v _k mk1) (cont v mk1))])
-                         ;; current continuation is ignored in call/cc
-                         ;; not like shift, call/cc doesn't push current 
-                         ;; continuation into meta-continuation,
-                         ;; and it doesn't refresh the current continuation
-                         ;; to init-cont, so if the contv is not been called,
-                         ;; the control will still fall back to call/cc's
-                         ;; call-site 
-                         (f contv cont mk)))])
-       (eval3 ex env new-cont mcont))]
+    [`(call/cc ,k0 ,ex)
+     (let* ([contv (lambda (v _k mk1)
+                    ;; current continuation is ignored in call/cc
+                    ;; not like shift, call/cc doesn't push current 
+                    ;; continuation into meta-continuation,
+                    ;; and it doesn't refresh the current continuation
+                    ;; to init-cont, so if the contv is not been called,
+                    ;; the control will still fall back to call/cc's
+                    ;; call-site 
+                     (cont v mk1))]
+            [new-env (cons (cons k0 contv) env)])
+       (eval3 ex new-env cont mcont))]
     [`(reset ,ex)
      (eval3 ex env init-cont (lambda (v) (cont v mcont)))]
-    [`(shift ,ex)
-     (let ([new-cont (lambda (f mk)
-                       (let ([contv (lambda (v k mk1)
-                                      ;; The shifted continuation.
-                                      ;; Parameter `k` contains the computation targeting last **shift** rather than
-                                      ;; **reset**, because the continuaition betweeen last **shift** and last **reset**
-                                      ;; was shifted into shift's parameter. Hence if we shift again inside the shift's
-                                      ;; body(the `f`'s body), the shifted computation will only contains computation
-                                      ;; till last shift. 
-                                      (let ([new-mk1 (lambda (v) (k v mk1))])
-                                        (cont v new-mk1)))])
-                         ;;               ^
-                         ;;               |
-                         ;;           -----
-                         ;;           |
-                         ;;    shifted continuation
-                         ;;           |
-                         (f contv init-cont mk)))])
-       (eval3 ex env new-cont mcont))]
-    [`(shift, ex)
+    [`(shift ,k0 ,ex)
+     (let* ([contv (lambda (v k mk1)
+                     ;; The shifted continuation.
+                     ;; Parameter `k` contains the computation targeting last **shift** rather than
+                     ;; **reset**, because the continuaition betweeen last **shift** and last **reset**
+                     ;; was shifted into shift's parameter. Hence if we shift again inside the shift's
+                     ;; body(the `f`'s body), the shifted computation will only contains computation
+                     ;; till last shift. 
+                     (let ([new-mk1 (lambda (v) (k v mk1))])
+                       (cont v new-mk1)))]
+            [new-env (cons (cons k0 contv) env)])
+       (eval3 ex new-env init-cont mcont))]
+    [`(shift ,k0 ,ex)
      ;; shift implementation use direct style
-     (let ([new-cont (lambda (f mk)
-                       (let ([contv (lambda (v k mk1)
-                                      (let ([res (cont v init-mcont)])
-                                        (k res mk1)))])
-                         (f contv init-cont mk)))])
-       (eval3 ex env new-cont mcont))]
+     (let* ([contv (lambda (v k mk1)
+                    (let ([res (cont v init-mcont)])
+                      (k res mk1)))]
+           [new-env (cons (cons k0 contv) env)])
+       (eval3 ex new-env init-cont mcont))]
     [`(prompt ,ex)
      ;; exactly same as reset
      (eval3 ex env init-cont (lambda (v) (cont v mcont)))]

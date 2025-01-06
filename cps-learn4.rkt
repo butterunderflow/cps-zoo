@@ -31,9 +31,9 @@
                            (if v
                                (,(cps-trans ex0) __k)
                                (,(cps-trans ex1) __k)))))]
-    [`(call/cc ,ex)
+    [`(call/cc ,k0 ,ex)
      `(lambda __k
-        (,(cps-trans ex)
+        (,(cps-trans `(lambda ,k0 ,ex))
          (lambda __f
            ((__f (lambda __v (lambda __k1
                                ;; __k1 contains the computation from the continuation parameter's call site
@@ -43,9 +43,9 @@
     [`(reset ,ex)
      ;; continuation-composing style
      `(lambda __k (__k (,(cps-trans ex) (lambda __v __v))))]
-    [`(shift ,ex)
+    [`(shift ,k0 ,ex)
      `(lambda __k
-        (,(cps-trans ex)
+        (,(cps-trans `(lambda ,k0 ,ex))
          (lambda __f
            (;; continuation-composing style:
             ;; when this functional argument is applied,
